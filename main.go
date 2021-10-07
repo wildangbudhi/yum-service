@@ -15,9 +15,14 @@ func main() {
 	}
 
 	HealthCheckHandler(server)
-
 	depedencyInjection(server)
 	server.Router.Run(server.Config.ServerHost)
+
+	err = server.Close()
+
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func depedencyInjection(server *utils.Server) {

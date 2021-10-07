@@ -114,3 +114,23 @@ func NewServer() (*Server, error) {
 
 	return &server, nil
 }
+
+func (server *Server) Close() error {
+
+	var err error
+
+	err = server.DB.Close()
+
+	if err != nil {
+		return err
+	}
+
+	err = server.RedisDB.Close()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
