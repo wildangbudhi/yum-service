@@ -6,7 +6,7 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
-func NewRedisConnection(host, password, db string) (*redis.Client, error) {
+func NewRedisConnection(host, port, password, db string) (*redis.Client, error) {
 
 	dbNumber, err := strconv.Atoi(db)
 
@@ -15,7 +15,7 @@ func NewRedisConnection(host, password, db string) (*redis.Client, error) {
 	}
 
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     host + ":6379",
+		Addr:     host + ":" + port,
 		Password: password,
 		DB:       dbNumber,
 	})
