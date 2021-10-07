@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 
+	"cloud.google.com/go/storage"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 )
@@ -38,10 +39,11 @@ type Config struct {
 
 // Server Struct
 type Server struct {
-	Config  Config
-	Router  *gin.Engine
-	DB      *sql.DB
-	RedisDB *redis.Client
+	Config        Config
+	Router        *gin.Engine
+	DB            *sql.DB
+	RedisDB       *redis.Client
+	ObjectStorage *storage.Client
 }
 
 // NewServer is a constructor for Server Struct
@@ -107,6 +109,16 @@ func NewServer() (*Server, error) {
 
 	server.RedisDB = rdb
 
+	var objectStorageClient *storage.Client
+
+	objectStorageClient, err = NewObjectStorage()
+
+	if err != nil {
+		return nil, err
+	}
+
+	server.ObjectStorage = objectStorageClient
+
 	log.SetFlags(log.Ldate | log.Ltime | log.Llongfile)
 
 	gin.SetMode(server.Config.State)
@@ -126,6 +138,12 @@ func (server *Server) Close() error {
 	}
 
 	err = server.RedisDB.Close()
+
+	if err != nil {
+		return err
+	}
+
+	err = server.ObjectStorage.Close()
 
 	if err != nil {
 		return err
