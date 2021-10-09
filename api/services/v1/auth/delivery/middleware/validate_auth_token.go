@@ -30,6 +30,12 @@ func (handler *authMiddlewareDelivery) ValidateAuthToken(allowedRole []string, i
 		resp, err, statusCode = handler.authUsecase.ValidateAccessToken(&requestHeader.Authorization)
 
 		if err != nil || statusCode != 200 {
+
+			if err.Error() == "Token is expired" {
+				ctx.AbortWithStatusJSON(int(statusCode), domain.HTTPRestReponseBase{StatusCode: 4032, Message: err.Error()})
+				return
+			}
+
 			ctx.AbortWithStatusJSON(int(statusCode), domain.HTTPRestReponseBase{StatusCode: int(statusCode), Message: err.Error()})
 			return
 		}

@@ -35,7 +35,7 @@ func (obj *authToken) GenerateAuthToken(userID string, role string, isPhoneVerif
 	tokenPayload["user_id"] = userID
 	tokenPayload["role"] = role
 	tokenPayload["uuid"] = tokenUUID.GetValue()
-	tokenPayload["exp"] = time.Now().Add(time.Hour * 24).Unix()
+	tokenPayload["exp"] = time.Now().Add(time.Second * 10).Unix()
 
 	token, err = domain.NewJWTFromPayload(tokenPayload, obj.secretKey)
 

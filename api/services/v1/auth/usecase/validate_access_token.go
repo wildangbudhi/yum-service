@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/wildangbudhi/yum-service/domain"
 	"github.com/wildangbudhi/yum-service/domain/v1/auth"
@@ -22,8 +21,7 @@ func (usecase *authUsecase) ValidateAccessToken(token *string) (*auth.ValidateAu
 	tokenJWT, err = domain.NewJWT(*token, usecase.serverConfig.SecretKey)
 
 	if err != nil {
-		log.Println(err)
-		return nil, fmt.Errorf("Unaothorized"), 401
+		return nil, err, 401
 	}
 
 	var resp *auth.ValidateAuthTokenResponse
