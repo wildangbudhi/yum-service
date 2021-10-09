@@ -12,6 +12,6 @@ const (
 type HTTPStatusCode int
 
 const (
-	LikeTypeLike    string = "LIKE"
-	LikeTypeDislike string = "DISLIKE"
+	OTPCustomertype int = 1
+	OTPRestotype    int = 2
 )

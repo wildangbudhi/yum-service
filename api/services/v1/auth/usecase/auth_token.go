@@ -1,10 +1,8 @@
 package usecase
 
 import (
-	"crypto/rand"
 	"fmt"
 	"log"
-	"math/big"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -24,27 +22,7 @@ func NewAuthToken(secretKey []byte, sessionRepository auth.SessionRepository) au
 	}
 }
 
-func (obj *authToken) generateSecretKey() (string, error) {
-
-	const letters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-!@#$%^&*()+=_"
-
-	ret := make([]byte, 64)
-
-	for i := 0; i < len(ret); i++ {
-		num, err := rand.Int(rand.Reader, big.NewInt(int64(len(letters))))
-
-		if err != nil {
-			return "", err
-		}
-
-		ret[i] = letters[num.Int64()]
-	}
-
-	return string(ret), nil
-
-}
-
-func (obj *authToken) GenerateAuthToken(userID int, role string, isPhoneVerified bool) (*domain.JWT, *domain.JWT, string, error) {
+func (obj *authToken) GenerateAuthToken(userID string, role string, isPhoneVerified bool) (*domain.JWT, *domain.JWT, error) {
 
 	var err error
 
@@ -63,7 +41,7 @@ func (obj *authToken) GenerateAuthToken(userID int, role string, isPhoneVerified
 
 	if err != nil {
 		log.Println(err)
-		return nil, nil, "", fmt.Errorf("Failed to Generate Session")
+		return nil, nil, fmt.Errorf("Failed to Generate Session")
 	}
 
 	refreshTokenPayload = jwt.MapClaims{}
@@ -75,26 +53,17 @@ func (obj *authToken) GenerateAuthToken(userID int, role string, isPhoneVerified
 
 	if err != nil {
 		log.Println(err)
-		return nil, nil, "", fmt.Errorf("Failed to Generate Session")
+		return nil, nil, fmt.Errorf("Failed to Generate Session")
 	}
 
 	token, err = domain.NewJWTFromPayload(tokenPayload, obj.secretKey)
 
 	if err != nil {
 		log.Println(err)
-		return nil, nil, "", fmt.Errorf("Failed to Generate Session")
+		return nil, nil, fmt.Errorf("Failed to Generate Session")
 	}
 
-	var accessSecretKey string
-
-	accessSecretKey, err = obj.generateSecretKey()
-
-	if err != nil {
-		log.Println(err)
-		return nil, nil, "", fmt.Errorf("Failed to Generate Session")
-	}
-
-	var sessionKey string = fmt.Sprintf("auth-token-%s-%d", role, userID)
+	var sessionKey string = fmt.Sprintf("auth-token-%s-%s", role, userID)
 	var sessionData auth.Session = auth.Session{
 		AccessUUID:      tokenUUID.GetValue(),
 		RefreshUUID:     refreshTokenUUID.GetValue(),
@@ -104,10 +73,10 @@ func (obj *authToken) GenerateAuthToken(userID int, role string, isPhoneVerified
 	err = obj.sessionRepository.SetSession(sessionKey, &sessionData, time.Hour*8760)
 
 	if err != nil {
-		return nil, nil, "", err
+		return nil, nil, err
 	}
 
-	return token, refreshToken, accessSecretKey, nil
+	return token, refreshToken, nil
 
 }
 
@@ -118,7 +87,7 @@ func (obj *authToken) ValidateToken(token *domain.JWT, isRefreshToken bool) (*au
 
 	var tokenPayload map[string]interface{} = token.GetPayload()
 	var role string
-	var userID float64
+	var userID string
 	var tokenUUID string
 
 	role, keyExist = tokenPayload["role"].(string)
@@ -127,7 +96,7 @@ func (obj *authToken) ValidateToken(token *domain.JWT, isRefreshToken bool) (*au
 		return nil, fmt.Errorf("Unauthorized")
 	}
 
-	userID, keyExist = tokenPayload["user_id"].(float64)
+	userID, keyExist = tokenPayload["user_id"].(string)
 
 	if !keyExist {
 		return nil, fmt.Errorf("Unauthorized")
@@ -139,7 +108,7 @@ func (obj *authToken) ValidateToken(token *domain.JWT, isRefreshToken bool) (*au
 		return nil, fmt.Errorf("Unauthorized")
 	}
 
-	var sessionKey string = fmt.Sprintf("auth-token-%s-%d", role, int(userID))
+	var sessionKey string = fmt.Sprintf("auth-token-%s-%s", role, userID)
 
 	var sessionData *auth.Session
 
@@ -176,7 +145,7 @@ func (obj *authToken) ValidateToken(token *domain.JWT, isRefreshToken bool) (*au
 
 }
 
-func (obj *authToken) RegenerateAuthToken(refreshToken *domain.JWT) (*domain.JWT, string, error) {
+func (obj *authToken) RegenerateAuthToken(refreshToken *domain.JWT) (*domain.JWT, error) {
 
 	var err error
 	var validateResponse *auth.ValidateAuthTokenResponse
@@ -184,31 +153,31 @@ func (obj *authToken) RegenerateAuthToken(refreshToken *domain.JWT) (*domain.JWT
 	validateResponse, err = obj.ValidateToken(refreshToken, true)
 
 	if err != nil {
-		return nil, "", fmt.Errorf("Refresh Token Invalid")
+		return nil, fmt.Errorf("Refresh Token Invalid")
 	}
 
 	var tokenPayload map[string]interface{} = refreshToken.GetPayload()
 	var keyExist bool
 	var role string
-	var userID float64
+	var userID string
 	var tokenUUID string
 
 	role, keyExist = tokenPayload["role"].(string)
 
 	if !keyExist {
-		return nil, "", fmt.Errorf("Refresh Token Invalid")
+		return nil, fmt.Errorf("Refresh Token Invalid")
 	}
 
-	userID, keyExist = tokenPayload["user_id"].(float64)
+	userID, keyExist = tokenPayload["user_id"].(string)
 
 	if !keyExist {
-		return nil, "", fmt.Errorf("Refresh Token Invalid")
+		return nil, fmt.Errorf("Refresh Token Invalid")
 	}
 
 	tokenUUID, keyExist = tokenPayload["uuid"].(string)
 
 	if !keyExist {
-		return nil, "", fmt.Errorf("Refresh Token Invalid")
+		return nil, fmt.Errorf("Refresh Token Invalid")
 	}
 
 	var newAccessTokenUUID *domain.UUID = domain.NewUUID()
@@ -224,19 +193,10 @@ func (obj *authToken) RegenerateAuthToken(refreshToken *domain.JWT) (*domain.JWT
 
 	if err != nil {
 		log.Println(err)
-		return nil, "", fmt.Errorf("Failed to generate new session")
+		return nil, fmt.Errorf("Failed to generate new session")
 	}
 
-	var accessSecretKey string
-
-	accessSecretKey, err = obj.generateSecretKey()
-
-	if err != nil {
-		log.Println(err)
-		return nil, "", fmt.Errorf("Failed to generate new session")
-	}
-
-	var sessionKey string = fmt.Sprintf("auth-token-%s-%d", role, int(userID))
+	var sessionKey string = fmt.Sprintf("auth-token-%s-%s", role, userID)
 	var sessionData auth.Session = auth.Session{
 		AccessUUID:      newAccessTokenUUID.GetValue(),
 		RefreshUUID:     tokenUUID,
@@ -246,10 +206,10 @@ func (obj *authToken) RegenerateAuthToken(refreshToken *domain.JWT) (*domain.JWT
 	err = obj.sessionRepository.SetSession(sessionKey, &sessionData, 0)
 
 	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
 
-	return newAccessToken, accessSecretKey, nil
+	return newAccessToken, nil
 
 }
 
@@ -260,9 +220,9 @@ func (obj *authToken) RemoveAuthToken(token *domain.JWT) error {
 
 	var tokenPayload map[string]interface{} = token.GetPayload()
 	var role string
-	var userID float64
+	var userID string
 
-	userID, keyExist = tokenPayload["user_id"].(float64)
+	userID, keyExist = tokenPayload["user_id"].(string)
 
 	if !keyExist {
 		return fmt.Errorf("Access Token Invalid")
@@ -274,7 +234,7 @@ func (obj *authToken) RemoveAuthToken(token *domain.JWT) error {
 		return fmt.Errorf("Access Token Invalid")
 	}
 
-	var sessionKey string = fmt.Sprintf("auth-token-%s-%d", role, int(userID))
+	var sessionKey string = fmt.Sprintf("auth-token-%s-%s", role, userID)
 
 	err = obj.sessionRepository.RemoveSession(sessionKey)
 

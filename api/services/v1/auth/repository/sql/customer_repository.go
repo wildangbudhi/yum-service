@@ -29,7 +29,7 @@ func (repo *customerRepository) GetCustomerByPhoneNumber(phoneNumber string) (*a
 	FROM 
 		customer
 	WHERE
-		phone_numer = ?
+		phone_number = ?
 	`
 
 	var queryResult *sql.Row
@@ -67,7 +67,12 @@ func (repo *customerRepository) CreateCustomer(customer *auth.Customer) (*domain
 	var err error
 	var exisitingCustomer *auth.Customer
 
+	log.Println(customer.PhoneNumber)
+
 	exisitingCustomer, err, _ = repo.GetCustomerByPhoneNumber(*customer.PhoneNumber)
+
+	log.Println(err)
+	log.Println(exisitingCustomer)
 
 	if err == nil && exisitingCustomer != nil {
 		return nil, fmt.Errorf("User with same phone number already exsist"), domain.RepositoryCreateDataFailed

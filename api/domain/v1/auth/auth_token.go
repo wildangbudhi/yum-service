@@ -8,8 +8,8 @@ type ValidateAuthTokenResponse struct {
 }
 
 type AuthToken interface {
-	GenerateAuthToken(userID int, role string, isPhoneVerified bool) (*domain.JWT, *domain.JWT, string, error)
+	GenerateAuthToken(userID string, role string, isPhoneVerified bool) (*domain.JWT, *domain.JWT, error)
 	ValidateToken(token *domain.JWT, isRefreshToken bool) (*ValidateAuthTokenResponse, error)
-	RegenerateAuthToken(refreshToken *domain.JWT) (*domain.JWT, string, error)
+	RegenerateAuthToken(refreshToken *domain.JWT) (*domain.JWT, error)
 	RemoveAuthToken(token *domain.JWT) error
 }
