@@ -19,7 +19,7 @@ func NewOTPRepository(db *sql.DB) auth.OTPRepository {
 	}
 }
 
-func (repo *otpRepository) CountOTPWithin30Second(id string, userType int) (int, error, domain.RepositoryErrorType) {
+func (repo *otpRepository) CountOTPWithin30Second(id string, userType int, phoneNumber string) (int, error, domain.RepositoryErrorType) {
 
 	var err error
 
@@ -31,13 +31,14 @@ func (repo *otpRepository) CountOTPWithin30Second(id string, userType int) (int,
 	WHERE
 		id = ?
 		AND type = ?
+		AND phone_number = ?
 		AND created_at BETWEEN DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 30 SECOND) AND CURRENT_TIMESTAMP()  
 	`
 
 	var queryResult *sql.Row
 	var countOTP int = 0
 
-	queryResult = repo.db.QueryRow(queryString, id, userType)
+	queryResult = repo.db.QueryRow(queryString, id, userType, phoneNumber)
 	err = queryResult.Scan(&countOTP)
 
 	if err != nil {
@@ -60,8 +61,8 @@ func (repo *otpRepository) CreateNewOTP(otp *auth.OTP) (error, domain.Repository
 
 	var queryString string = `
 	INSERT INTO otp
-	(id, type, sid, create_verification_resp_json, verification_check_resp_json)
-	VALUES(?, ?, ?, ?, ?)
+	(id, type, phone_number, sid, create_verification_resp_json, verification_check_resp_json)
+	VALUES(?, ?, ?, ?, ?, ?)
 	`
 
 	statement, err := repo.db.Prepare(queryString)
@@ -76,6 +77,7 @@ func (repo *otpRepository) CreateNewOTP(otp *auth.OTP) (error, domain.Repository
 	res, err = statement.Exec(
 		otp.ID,
 		otp.Type,
+		otp.PhoneNumber,
 		otp.SID,
 		otp.CreateVerificationRespJSON,
 		otp.VerificationCheckRespJSON,
@@ -113,6 +115,7 @@ func (repo *otpRepository) UpdateOTP(otp *auth.OTP) (error, domain.RepositoryErr
 		id = ?
 		AND type = ?
 		AND sid = ?
+		AND phone_number = ?
 	`
 
 	statement, err := repo.db.Prepare(queryString)
@@ -129,6 +132,7 @@ func (repo *otpRepository) UpdateOTP(otp *auth.OTP) (error, domain.RepositoryErr
 		otp.ID,
 		otp.Type,
 		otp.SID,
+		otp.PhoneNumber,
 	)
 
 	if err != nil {

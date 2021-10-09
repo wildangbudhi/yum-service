@@ -77,6 +77,7 @@ func (usecase *authUsecase) RegisterCustomer(name, phoneNumber, password, apn_ke
 	var newOTPLog *auth.OTP = &auth.OTP{
 		ID:                         newCustomer.ID,
 		Type:                       &otpType,
+		PhoneNumber:                newCustomer.PhoneNumber,
 		SID:                        &phoneVerificationSID,
 		CreateVerificationRespJSON: &phoneCreateVerificationResp,
 	}

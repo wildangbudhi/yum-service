@@ -136,7 +136,16 @@ func (obj *authToken) ValidateToken(token *domain.JWT, isRefreshToken bool) (*au
 		return nil, fmt.Errorf("Unauthorized")
 	}
 
+	var userUUID *domain.UUID
+
+	userUUID, err = domain.NewUUIDFromString(userID)
+
+	if err != nil {
+		return nil, fmt.Errorf("Unauthorized")
+	}
+
 	var response auth.ValidateAuthTokenResponse = auth.ValidateAuthTokenResponse{
+		UserID:          userUUID,
 		Role:            role,
 		IsPhoneVerified: sessionData.IsPhoneVerified,
 	}

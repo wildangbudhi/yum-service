@@ -19,6 +19,49 @@ func NewCustomerRepository(db *sql.DB) auth.CustomerRepository {
 	}
 }
 
+func (repo *customerRepository) GetCustomerByID(id *domain.UUID) (*auth.Customer, error, domain.RepositoryErrorType) {
+
+	var err error
+
+	var queryString string = `
+	SELECT 
+		phone_number, name, password, apn_key, fcm_key, phone_verified_at
+	FROM 
+		customer
+	WHERE
+		id = ?
+	`
+
+	var queryResult *sql.Row
+	var customer *auth.Customer = &auth.Customer{
+		ID: id,
+	}
+
+	queryResult = repo.db.QueryRow(queryString, id.GetValue())
+
+	err = queryResult.Scan(
+		&customer.PhoneNumber,
+		&customer.Name,
+		&customer.Password,
+		&customer.APNKey,
+		&customer.FCMKey,
+		&customer.PhoneVerifiedAt,
+	)
+
+	if err != nil {
+
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("Data Not Found"), domain.RepositoryDataNotFound
+		}
+
+		log.Println(err)
+		return nil, fmt.Errorf("Services Unavailable"), domain.RepositoryError
+	}
+
+	return customer, nil, 0
+
+}
+
 func (repo *customerRepository) GetCustomerByPhoneNumber(phoneNumber string) (*auth.Customer, error, domain.RepositoryErrorType) {
 
 	var err error
@@ -67,12 +110,7 @@ func (repo *customerRepository) CreateCustomer(customer *auth.Customer) (*domain
 	var err error
 	var exisitingCustomer *auth.Customer
 
-	log.Println(customer.PhoneNumber)
-
 	exisitingCustomer, err, _ = repo.GetCustomerByPhoneNumber(*customer.PhoneNumber)
-
-	log.Println(err)
-	log.Println(exisitingCustomer)
 
 	if err == nil && exisitingCustomer != nil {
 		return nil, fmt.Errorf("User with same phone number already exsist"), domain.RepositoryCreateDataFailed

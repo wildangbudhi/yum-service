@@ -60,6 +60,7 @@ func (handler *AuthHTTPRestHandler) RegisterCustomer(ctx *gin.Context) {
 		int(statusCode),
 		domain.HTTPRestReponseBase{
 			StatusCode: int(statusCode),
+			Message:    "Success",
 			Data: registerCustomerResponseBody{
 				Profile:               customerData,
 				IsPhoneNumberVerified: &isPhoneNumberVerified,

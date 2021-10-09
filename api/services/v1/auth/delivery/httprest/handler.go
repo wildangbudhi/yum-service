@@ -6,15 +6,18 @@ import (
 )
 
 type AuthHTTPRestHandler struct {
-	authUsecase auth.AuthUsecase
+	authMiddlewareDelivery auth.AuthMiddlewareDelivery
+	authUsecase            auth.AuthUsecase
 }
 
-func NewAuthHTTPRestHandler(router *gin.RouterGroup, authUsecase auth.AuthUsecase) {
+func NewAuthHTTPRestHandler(router *gin.RouterGroup, authMiddlewareDelivery auth.AuthMiddlewareDelivery, authUsecase auth.AuthUsecase) {
 
 	handler := AuthHTTPRestHandler{
-		authUsecase: authUsecase,
+		authMiddlewareDelivery: authMiddlewareDelivery,
+		authUsecase:            authUsecase,
 	}
 
 	router.POST("/register/customer", handler.RegisterCustomer)
+	router.GET("/otp/resend", authMiddlewareDelivery.ValidateAuthToken([]string{"customer", "role"}, false), handler.ResendOTP)
 
 }
