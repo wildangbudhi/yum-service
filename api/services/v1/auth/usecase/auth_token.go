@@ -35,7 +35,7 @@ func (obj *authToken) GenerateAuthToken(userID string, role string, isPhoneVerif
 	tokenPayload["user_id"] = userID
 	tokenPayload["role"] = role
 	tokenPayload["uuid"] = tokenUUID.GetValue()
-	tokenPayload["exp"] = time.Now().Add(time.Second * 10).Unix()
+	tokenPayload["exp"] = time.Now().Add(time.Hour * 1).Unix()
 
 	token, err = domain.NewJWTFromPayload(tokenPayload, obj.secretKey)
 
@@ -195,7 +195,7 @@ func (obj *authToken) RegenerateAuthToken(refreshToken *domain.JWT) (*domain.JWT
 	newAccessTokenPayload["user_id"] = userID
 	newAccessTokenPayload["role"] = role
 	newAccessTokenPayload["uuid"] = newAccessTokenUUID.GetValue()
-	newAccessTokenPayload["exp"] = time.Now().Add(time.Hour * 24).Unix()
+	newAccessTokenPayload["exp"] = time.Now().Add(time.Hour * 1).Unix()
 
 	var newAccessToken *domain.JWT
 	newAccessToken, err = domain.NewJWTFromPayload(newAccessTokenPayload, obj.secretKey)

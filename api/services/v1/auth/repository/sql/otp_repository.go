@@ -110,7 +110,7 @@ func (repo *otpRepository) UpdateOTP(otp *auth.OTP) (error, domain.RepositoryErr
 
 	queryString = `
 	UPDATE otp
-	SET verification_check_resp_json=?, updated_at=CURRENT_TIMESTAMP
+	SET verification_check_resp_json=?, updated_at=CURRENT_TIMESTAMP()
 	WHERE 
 		id = ?
 		AND type = ?

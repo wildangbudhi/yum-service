@@ -16,4 +16,5 @@ type CustomerRepository interface {
 	GetCustomerByID(id *domain.UUID) (*Customer, error, domain.RepositoryErrorType)
 	GetCustomerByPhoneNumber(phoneNumber string) (*Customer, error, domain.RepositoryErrorType)
 	CreateCustomer(customer *Customer) (*domain.UUID, error, domain.RepositoryErrorType)
+	UpdateCustomer(customer *Customer) (error, domain.RepositoryErrorType)
 }

@@ -162,3 +162,62 @@ func (repo *customerRepository) CreateCustomer(customer *auth.Customer) (*domain
 	return customer.ID, nil, 0
 
 }
+
+func (repo *customerRepository) UpdateCustomer(customer *auth.Customer) (error, domain.RepositoryErrorType) {
+
+	var err error
+	var queryString string
+
+	queryString = `
+	UPDATE 
+		customer
+	SET 
+		phone_number=?, 
+		password=?, 
+		name=?,
+		apn_key=?, 
+		fcm_key=?, 
+		phone_verified_at=?,
+		updated_at=CURRENT_TIMESTAMP()
+	WHERE 
+		id = ?
+	`
+
+	statement, err := repo.db.Prepare(queryString)
+
+	if err != nil {
+		log.Println(err)
+		return fmt.Errorf("Services Unavailable"), domain.RepositoryError
+	}
+
+	var res sql.Result
+
+	res, err = statement.Exec(
+		customer.PhoneNumber,
+		customer.Password,
+		customer.Name,
+		customer.APNKey,
+		customer.FCMKey,
+		customer.PhoneVerifiedAt,
+		customer.ID,
+	)
+
+	if err != nil {
+		log.Println(err)
+		return fmt.Errorf("Services Unavailable"), domain.RepositoryError
+	}
+
+	rowAffected, err := res.RowsAffected()
+
+	if err != nil {
+		log.Println(err)
+		return fmt.Errorf("Services Unavailable"), domain.RepositoryError
+	}
+
+	if rowAffected == 0 {
+		return fmt.Errorf("Failed to Insert New User"), domain.RepositoryUpdateDataFailed
+	}
+
+	return nil, 0
+
+}
