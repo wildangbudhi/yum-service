@@ -10,6 +10,7 @@ type authUsecase struct {
 	sessionRepository           auth.SessionRepository
 	phoneVerificationRepository auth.PhoneVerificationRepository
 	customerRepository          auth.CustomerRepository
+	restoRepository             auth.RestoRepository
 	otpRepository               auth.OTPRepository
 }
 
@@ -18,6 +19,7 @@ func NewAuthUsecase(
 	sessionRepository auth.SessionRepository,
 	phoneVerificationRepository auth.PhoneVerificationRepository,
 	customerRepository auth.CustomerRepository,
+	restoRepository auth.RestoRepository,
 	otpRepository auth.OTPRepository,
 ) auth.AuthUsecase {
 
@@ -26,6 +28,7 @@ func NewAuthUsecase(
 		sessionRepository:           sessionRepository,
 		phoneVerificationRepository: phoneVerificationRepository,
 		customerRepository:          customerRepository,
+		restoRepository:             restoRepository,
 		otpRepository:               otpRepository,
 	}
 

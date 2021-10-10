@@ -19,11 +19,13 @@ func getAuthUsecase(server *utils.Server) auth.AuthUsecase {
 	var sessionRepository auth.SessionRepository
 	var phoneVerificationRepository auth.PhoneVerificationRepository
 	var customerRepository auth.CustomerRepository
+	var restoRepository auth.RestoRepository
 	var otpRepository auth.OTPRepository
 
 	sessionRepository = redis.NewSessionRepository(server.RedisDB)
 	phoneVerificationRepository = sms.NewPhoneVerificationRepository(server.Config, server.SMSService)
 	customerRepository = sql.NewCustomerRepository(server.DB)
+	restoRepository = sql.NewRestoRepository(server.DB)
 	otpRepository = sql.NewOTPRepository(server.DB)
 
 	authUsecase = usecase.NewAuthUsecase(
@@ -31,6 +33,7 @@ func getAuthUsecase(server *utils.Server) auth.AuthUsecase {
 		sessionRepository,
 		phoneVerificationRepository,
 		customerRepository,
+		restoRepository,
 		otpRepository,
 	)
 
