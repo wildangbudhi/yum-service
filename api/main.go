@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
+	v1 "github.com/wildangbudhi/yum-service/depedencyinjection/v1"
 	"github.com/wildangbudhi/yum-service/utils"
 )
 
@@ -26,6 +27,7 @@ func main() {
 }
 
 func depedencyInjection(server *utils.Server) {
+	v1.AuthHTTPRestDI(server)
 }
 
 func HealthCheckHandler(server *utils.Server) {
