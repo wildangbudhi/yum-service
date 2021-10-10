@@ -105,6 +105,47 @@ func (repo *restoRepository) GetRestoByPhoneNumber(phoneNumber string) (*auth.Re
 
 }
 
+func (repo *restoRepository) CreateDefaultRestoData(restoID *domain.UUID) (error, domain.RepositoryErrorType) {
+
+	var err error
+
+	var queryString string = `
+	INSERT INTO resto_data
+	(resto_id, address, is_free_wifi, is_free_parking, is_physical_distancing_applied, is_using_ac)
+	VALUES(?, '', 0, 0, 0, 0)
+	`
+
+	statement, err := repo.db.Prepare(queryString)
+
+	if err != nil {
+		log.Println(err)
+		return fmt.Errorf("Services Unavailable"), domain.RepositoryError
+	}
+
+	var res sql.Result
+
+	res, err = statement.Exec(restoID)
+
+	if err != nil {
+		log.Println(err)
+		return fmt.Errorf("Services Unavailable"), domain.RepositoryError
+	}
+
+	rowAffected, err := res.RowsAffected()
+
+	if err != nil {
+		log.Println(err)
+		return fmt.Errorf("Services Unavailable"), domain.RepositoryError
+	}
+
+	if rowAffected == 0 {
+		return fmt.Errorf("Failed to Save Partner Data"), domain.RepositoryCreateDataFailed
+	}
+
+	return nil, 0
+
+}
+
 func (repo *restoRepository) CreateResto(resto *auth.Resto) (*domain.UUID, error, domain.RepositoryErrorType) {
 
 	var err error
@@ -157,6 +198,12 @@ func (repo *restoRepository) CreateResto(resto *auth.Resto) (*domain.UUID, error
 
 	if rowAffected == 0 {
 		return nil, fmt.Errorf("Failed to Save Partner Data"), domain.RepositoryCreateDataFailed
+	}
+
+	err, _ = repo.CreateDefaultRestoData(resto.ID)
+
+	if err != nil {
+		return nil, err, domain.RepositoryError
 	}
 
 	return resto.ID, nil, 0
