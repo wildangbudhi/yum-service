@@ -14,5 +14,6 @@ type OTP struct {
 type OTPRepository interface {
 	CountOTPWithin30Second(id string, userType int, phoneNumber string) (int, error, domain.RepositoryErrorType)
 	CreateNewOTP(otp *OTP) (error, domain.RepositoryErrorType)
+	GetOTP(userID *domain.UUID, otpType int, sid, phoneNumber string) (*OTP, error, domain.RepositoryErrorType)
 	UpdateOTP(otp *OTP) (error, domain.RepositoryErrorType)
 }

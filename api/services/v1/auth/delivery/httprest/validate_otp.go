@@ -9,7 +9,11 @@ import (
 	"github.com/wildangbudhi/yum-service/domain/v1/auth"
 )
 
-func (handler *AuthHTTPRestHandler) ResendOTP(ctx *gin.Context) {
+type validateOTPRequestBody struct {
+	OTPCode *string `json:"otp_code" binding:"required"`
+}
+
+func (handler *AuthHTTPRestHandler) ValidateOTP(ctx *gin.Context) {
 
 	var err error
 	var statusCode domain.HTTPStatusCode
@@ -38,7 +42,16 @@ func (handler *AuthHTTPRestHandler) ResendOTP(ctx *gin.Context) {
 		return
 	}
 
-	err, statusCode = handler.authUsecase.ResendOTP(authHeader)
+	requestBodyData := &validateOTPRequestBody{}
+
+	err = ctx.BindJSON(requestBodyData)
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, domain.HTTPRestReponseBase{StatusCode: http.StatusBadRequest, Message: err.Error()})
+		return
+	}
+
+	err, statusCode = handler.authUsecase.ValidateOTP(authHeader, requestBodyData.OTPCode)
 
 	if err != nil {
 		ctx.JSON(int(statusCode), domain.HTTPRestReponseBase{StatusCode: int(statusCode), Message: err.Error()})

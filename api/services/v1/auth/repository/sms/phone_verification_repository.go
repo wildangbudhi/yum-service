@@ -54,7 +54,7 @@ func (repo *phoneVerificationRepository) CreateAndSendOTPVerification(phoneNumbe
 
 }
 
-func (repo *phoneVerificationRepository) VerifyPhone(phoneNumber, otpCode string) (bool, string, error) {
+func (repo *phoneVerificationRepository) VerifyPhone(phoneNumber, otpCode string) (bool, string, string, error) {
 
 	var err error
 
@@ -70,9 +70,9 @@ func (repo *phoneVerificationRepository) VerifyPhone(phoneNumber, otpCode string
 
 	if err != nil {
 		log.Println(err)
-		return false, "", fmt.Errorf("Services Unavailable")
+		return false, "", "", fmt.Errorf("Services Unavailable")
 	}
 
-	return *res.Valid, string(byteJSON), nil
+	return *res.Valid, *res.Sid, string(byteJSON), nil
 
 }

@@ -154,3 +154,49 @@ func (repo *otpRepository) UpdateOTP(otp *auth.OTP) (error, domain.RepositoryErr
 	return nil, 0
 
 }
+
+func (repo *otpRepository) GetOTP(userID *domain.UUID, otpType int, sid, phoneNumber string) (*auth.OTP, error, domain.RepositoryErrorType) {
+
+	var err error
+
+	var queryString string = `
+	SELECT 
+		create_verification_resp_json, 
+		verification_check_resp_json
+	FROM 
+		otp
+	WHERE
+		id = ?
+		AND type = ?
+		AND sid = ?
+		AND phone_number = ?
+	`
+
+	var queryResult *sql.Row
+	var otp *auth.OTP = &auth.OTP{
+		ID:          userID,
+		Type:        &otpType,
+		SID:         &sid,
+		PhoneNumber: &phoneNumber,
+	}
+
+	queryResult = repo.db.QueryRow(queryString, userID, otpType, sid, phoneNumber)
+
+	err = queryResult.Scan(
+		&otp.CreateVerificationRespJSON,
+		&otp.VerificationCheckRespJSON,
+	)
+
+	if err != nil {
+
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("Data Not Found"), domain.RepositoryDataNotFound
+		}
+
+		log.Println(err)
+		return nil, fmt.Errorf("Services Unavailable"), domain.RepositoryError
+	}
+
+	return otp, nil, 0
+
+}

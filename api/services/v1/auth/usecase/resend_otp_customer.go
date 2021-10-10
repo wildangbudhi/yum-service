@@ -7,36 +7,25 @@ import (
 	"github.com/wildangbudhi/yum-service/domain/v1/auth"
 )
 
-func (usecase *authUsecase) ResendOTP(authHeader *auth.ValidateAuthTokenResponse) (error, domain.HTTPStatusCode) {
+func (usecase *authUsecase) ResendOTPCustomer(authHeader *auth.ValidateAuthTokenResponse) (error, domain.HTTPStatusCode) {
 
 	if authHeader.IsPhoneVerified {
 		return fmt.Errorf("Phone number has been verified"), 400
 	}
 
-	var phoneNumber string
-	var otpType int
 	var err error
+	var customer *auth.Customer
+	var otpType int = 1
 
-	if authHeader.Role == "customer" {
-		otpType = 1
+	customer, err, _ = usecase.customerRepository.GetCustomerByID(authHeader.UserID)
 
-		var customer *auth.Customer
-
-		customer, err, _ = usecase.customerRepository.GetCustomerByID(authHeader.UserID)
-
-		if err != nil {
-			return err, 500
-		}
-
-		phoneNumber = *customer.PhoneNumber
-
-	} else if authHeader.Role == "resto" {
-		otpType = 2
+	if err != nil {
+		return err, 500
 	}
 
 	var countOTP int
 
-	countOTP, err, _ = usecase.otpRepository.CountOTPWithin30Second(authHeader.UserID.GetValue(), otpType, phoneNumber)
+	countOTP, err, _ = usecase.otpRepository.CountOTPWithin30Second(authHeader.UserID.GetValue(), otpType, *customer.PhoneNumber)
 
 	if err != nil {
 		return err, 500
@@ -48,7 +37,7 @@ func (usecase *authUsecase) ResendOTP(authHeader *auth.ValidateAuthTokenResponse
 
 	var phoneVerificationSID, phoneCreateVerificationResp string
 
-	phoneVerificationSID, phoneCreateVerificationResp, err = usecase.phoneVerificationRepository.CreateAndSendOTPVerification(phoneNumber)
+	phoneVerificationSID, phoneCreateVerificationResp, err = usecase.phoneVerificationRepository.CreateAndSendOTPVerification(*customer.PhoneNumber)
 
 	if err != nil {
 		return err, 500
@@ -57,7 +46,7 @@ func (usecase *authUsecase) ResendOTP(authHeader *auth.ValidateAuthTokenResponse
 	var newOTPLog *auth.OTP = &auth.OTP{
 		ID:                         authHeader.UserID,
 		Type:                       &otpType,
-		PhoneNumber:                &phoneNumber,
+		PhoneNumber:                customer.PhoneNumber,
 		SID:                        &phoneVerificationSID,
 		CreateVerificationRespJSON: &phoneCreateVerificationResp,
 	}
