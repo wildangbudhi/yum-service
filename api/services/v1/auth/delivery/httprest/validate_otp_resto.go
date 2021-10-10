@@ -9,18 +9,18 @@ import (
 	"github.com/wildangbudhi/yum-service/domain/v1/auth"
 )
 
-type validateOTPCustomerRequestBody struct {
+type validateOTPRestoRequestBody struct {
 	OTPCode *string `json:"otp_code" binding:"required"`
 }
 
-type validateOTPCustomerResponseBody struct {
-	Profile               *auth.Customer `json:"profile"`
-	IsPhoneNumberVerified *bool          `json:"is_phone_number_verified"`
-	AccessToken           *string        `json:"access_token"`
-	RefreshToken          *string        `json:"refresh_token"`
+type validateOTPRestoResponseBody struct {
+	Profile               *auth.Resto `json:"profile"`
+	IsPhoneNumberVerified *bool       `json:"is_phone_number_verified"`
+	AccessToken           *string     `json:"access_token"`
+	RefreshToken          *string     `json:"refresh_token"`
 }
 
-func (handler *AuthHTTPRestHandler) ValidateOTPCustomer(ctx *gin.Context) {
+func (handler *AuthHTTPRestHandler) ValidateOTPResto(ctx *gin.Context) {
 
 	var err error
 	var statusCode domain.HTTPStatusCode
@@ -49,7 +49,7 @@ func (handler *AuthHTTPRestHandler) ValidateOTPCustomer(ctx *gin.Context) {
 		return
 	}
 
-	requestBodyData := &validateOTPCustomerRequestBody{}
+	requestBodyData := &validateOTPRestoRequestBody{}
 
 	err = ctx.BindJSON(requestBodyData)
 
@@ -58,11 +58,11 @@ func (handler *AuthHTTPRestHandler) ValidateOTPCustomer(ctx *gin.Context) {
 		return
 	}
 
-	var customerData *auth.Customer
+	var restoData *auth.Resto
 	var aksesToken, refreshToken string
 	var isPhoneNumberVerified bool
 
-	customerData, isPhoneNumberVerified, aksesToken, refreshToken, err, statusCode = handler.authUsecase.ValidateOTPCustomer(authHeader, requestBodyData.OTPCode)
+	restoData, isPhoneNumberVerified, aksesToken, refreshToken, err, statusCode = handler.authUsecase.ValidateOTPResto(authHeader, requestBodyData.OTPCode)
 
 	if err != nil {
 		ctx.JSON(int(statusCode), domain.HTTPRestReponseBase{StatusCode: int(statusCode), Message: err.Error()})
@@ -74,8 +74,8 @@ func (handler *AuthHTTPRestHandler) ValidateOTPCustomer(ctx *gin.Context) {
 		domain.HTTPRestReponseBase{
 			StatusCode: int(statusCode),
 			Message:    "Success",
-			Data: validateOTPCustomerResponseBody{
-				Profile:               customerData,
+			Data: validateOTPRestoResponseBody{
+				Profile:               restoData,
 				IsPhoneNumberVerified: &isPhoneNumberVerified,
 				AccessToken:           &aksesToken,
 				RefreshToken:          &refreshToken,

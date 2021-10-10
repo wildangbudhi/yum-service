@@ -7,18 +7,18 @@ import (
 	"github.com/wildangbudhi/yum-service/domain/v1/auth"
 )
 
-func (usecase *authUsecase) ValidateOTPCustomer(authHeader *auth.ValidateAuthTokenResponse, otpCode *string) (*auth.Customer, bool, string, string, error, domain.HTTPStatusCode) {
+func (usecase *authUsecase) ValidateOTPResto(authHeader *auth.ValidateAuthTokenResponse, otpCode *string) (*auth.Resto, bool, string, string, error, domain.HTTPStatusCode) {
 
 	if authHeader.IsPhoneVerified {
 		return nil, false, "", "", fmt.Errorf("Phone number has been verified"), 400
 	}
 
-	var otpType int = domain.OTPCustomertype
+	var otpType int = domain.OTPRestotype
 	var err error
 
-	var customer *auth.Customer
+	var resto *auth.Resto
 
-	customer, err, _ = usecase.customerRepository.GetCustomerByID(authHeader.UserID)
+	resto, err, _ = usecase.restoRepository.GetRestoByID(authHeader.UserID)
 
 	if err != nil {
 		return nil, false, "", "", err, 500
@@ -27,7 +27,7 @@ func (usecase *authUsecase) ValidateOTPCustomer(authHeader *auth.ValidateAuthTok
 	var isPhoneVerified bool
 	var verificationCheckRespJson, sid string
 
-	isPhoneVerified, sid, verificationCheckRespJson, err = usecase.phoneVerificationRepository.VerifyPhone(*customer.PhoneNumber, *otpCode)
+	isPhoneVerified, sid, verificationCheckRespJson, err = usecase.phoneVerificationRepository.VerifyPhone(*resto.PhoneNumber, *otpCode)
 
 	if err != nil {
 		return nil, false, "", "", err, 500
@@ -39,7 +39,7 @@ func (usecase *authUsecase) ValidateOTPCustomer(authHeader *auth.ValidateAuthTok
 
 	var otpLog *auth.OTP
 
-	otpLog, err, _ = usecase.otpRepository.GetOTP(customer.ID, otpType, sid, *customer.PhoneNumber)
+	otpLog, err, _ = usecase.otpRepository.GetOTP(resto.ID, otpType, sid, *resto.PhoneNumber)
 
 	if err != nil {
 		return nil, false, "", "", err, 500
@@ -61,9 +61,9 @@ func (usecase *authUsecase) ValidateOTPCustomer(authHeader *auth.ValidateAuthTok
 		return nil, false, "", "", err, 500
 	}
 
-	customer.PhoneVerifiedAt = nowTimestamp
+	resto.PhoneVerifiedAt = nowTimestamp
 
-	err, _ = usecase.customerRepository.UpdateCustomer(customer)
+	err, _ = usecase.restoRepository.UpdateResto(resto)
 
 	if err != nil {
 		return nil, false, "", "", err, 500
@@ -73,12 +73,12 @@ func (usecase *authUsecase) ValidateOTPCustomer(authHeader *auth.ValidateAuthTok
 
 	var token, refreshToken *domain.JWT
 
-	token, refreshToken, err = authToken.GenerateAuthToken(customer.ID.GetValue(), "customer", true)
+	token, refreshToken, err = authToken.GenerateAuthToken(resto.ID.GetValue(), "resto", true)
 
 	if err != nil {
 		return nil, false, "", "", err, 500
 	}
 
-	return customer, true, token.GetToken(), refreshToken.GetToken(), nil, 200
+	return resto, true, token.GetToken(), refreshToken.GetToken(), nil, 200
 
 }

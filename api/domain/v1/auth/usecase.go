@@ -11,4 +11,5 @@ type AuthUsecase interface {
 	ResendOTPCustomer(authHeader *ValidateAuthTokenResponse) (error, domain.HTTPStatusCode)
 	ResendOTPResto(authHeader *ValidateAuthTokenResponse) (error, domain.HTTPStatusCode)
 	ValidateOTPCustomer(authHeader *ValidateAuthTokenResponse, otpCode *string) (*Customer, bool, string, string, error, domain.HTTPStatusCode)
+	ValidateOTPResto(authHeader *ValidateAuthTokenResponse, otpCode *string) (*Resto, bool, string, string, error, domain.HTTPStatusCode)
 }
