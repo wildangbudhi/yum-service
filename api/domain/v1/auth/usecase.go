@@ -9,5 +9,6 @@ type AuthUsecase interface {
 	AuthenticateResto(phoneNumber, password, apn_key, fcm_key *string) (*Resto, bool, string, string, error, domain.HTTPStatusCode)
 	ValidateAccessToken(token *string) (*ValidateAuthTokenResponse, error, domain.HTTPStatusCode)
 	ResendOTPCustomer(authHeader *ValidateAuthTokenResponse) (error, domain.HTTPStatusCode)
+	ResendOTPResto(authHeader *ValidateAuthTokenResponse) (error, domain.HTTPStatusCode)
 	ValidateOTPCustomer(authHeader *ValidateAuthTokenResponse, otpCode *string) (*Customer, bool, string, string, error, domain.HTTPStatusCode)
 }

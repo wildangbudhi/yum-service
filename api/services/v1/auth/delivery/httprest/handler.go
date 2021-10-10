@@ -22,6 +22,7 @@ func NewAuthHTTPRestHandler(router *gin.RouterGroup, authMiddlewareDelivery auth
 	router.POST("/authenticate/customer", handler.AuthenticateCustomer)
 	router.POST("/authenticate/resto", handler.AuthenticateResto)
 	router.GET("/otp/resend/customer", authMiddlewareDelivery.ValidateAuthToken([]string{"customer"}, false), handler.ResendOTPCustomer)
+	router.GET("/otp/resend/resto", authMiddlewareDelivery.ValidateAuthToken([]string{"resto"}, false), handler.ResendOTPResto)
 	router.POST("/otp/validate/customer", authMiddlewareDelivery.ValidateAuthToken([]string{"customer"}, false), handler.ValidateOTPCustomer)
 
 }
