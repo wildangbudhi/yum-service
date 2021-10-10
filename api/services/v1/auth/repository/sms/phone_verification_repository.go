@@ -73,6 +73,10 @@ func (repo *phoneVerificationRepository) VerifyPhone(phoneNumber, otpCode string
 		return false, "", "", fmt.Errorf("Services Unavailable")
 	}
 
+	if res == nil || res.Valid == nil || res.Sid == nil {
+		return false, "", string(byteJSON), nil
+	}
+
 	return *res.Valid, *res.Sid, string(byteJSON), nil
 
 }

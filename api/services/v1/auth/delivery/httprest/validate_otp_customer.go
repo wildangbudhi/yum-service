@@ -13,7 +13,14 @@ type validateOTPRequestBody struct {
 	OTPCode *string `json:"otp_code" binding:"required"`
 }
 
-func (handler *AuthHTTPRestHandler) ValidateOTP(ctx *gin.Context) {
+type validateOTPResponseBody struct {
+	Profile               *auth.Customer `json:"profile"`
+	IsPhoneNumberVerified *bool          `json:"is_phone_number_verified"`
+	AccessToken           *string        `json:"access_token"`
+	RefreshToken          *string        `json:"refresh_token"`
+}
+
+func (handler *AuthHTTPRestHandler) ValidateOTPCustomer(ctx *gin.Context) {
 
 	var err error
 	var statusCode domain.HTTPStatusCode
@@ -51,13 +58,29 @@ func (handler *AuthHTTPRestHandler) ValidateOTP(ctx *gin.Context) {
 		return
 	}
 
-	err, statusCode = handler.authUsecase.ValidateOTP(authHeader, requestBodyData.OTPCode)
+	var customerData *auth.Customer
+	var aksesToken, refreshToken string
+	var isPhoneNumberVerified bool
+
+	customerData, isPhoneNumberVerified, aksesToken, refreshToken, err, statusCode = handler.authUsecase.ValidateOTPCustomer(authHeader, requestBodyData.OTPCode)
 
 	if err != nil {
 		ctx.JSON(int(statusCode), domain.HTTPRestReponseBase{StatusCode: int(statusCode), Message: err.Error()})
 		return
 	}
 
-	ctx.JSON(int(200), domain.HTTPRestReponseBase{StatusCode: int(200), Message: "Success"})
+	ctx.JSON(
+		int(statusCode),
+		domain.HTTPRestReponseBase{
+			StatusCode: int(statusCode),
+			Message:    "Success",
+			Data: registerCustomerResponseBody{
+				Profile:               customerData,
+				IsPhoneNumberVerified: &isPhoneNumberVerified,
+				AccessToken:           &aksesToken,
+				RefreshToken:          &refreshToken,
+			},
+		},
+	)
 
 }
